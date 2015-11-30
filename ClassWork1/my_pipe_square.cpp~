@@ -1,0 +1,56 @@
+#include <iostream>
+#include <ff/pipeline.hpp>
+
+using namespace ff;
+typedef long myTask;
+
+struct FirstStage:ff_node_t<myTask>{
+public: 
+    FirstStage(int nitems):n(nitems){}
+
+    myTask *svc(myTask*){
+        for(int i=0; i<n ;i++){
+            ff_send_out(new myTask(i));
+        }
+        return EOS;
+    }  
+private:
+   int n = 0;
+};
+
+struct SecondStage:ff_node_t<myTask>{
+
+        myTask *svc(myTask *task){
+            myTask &res = *task;
+            res = res*res;
+            return task; 
+        }
+};
+
+struct ThirdStage:ff_node_t<myTask>{
+       
+    myTask *svc(myTask *task){
+        myTask& t = *task;
+         sum+= t;
+         delete task;
+         return GO_ON;
+        }
+    void svc_end(){
+        std::cout<< " sum = " <<sum<<std::endl;
+    }
+    
+
+    myTask sum = 0.0;
+ };
+
+
+int main(int argc, char *argv[]){
+
+    FirstStage f1(std::stol(argv[1]));
+    SecondStage f2;
+    ThirdStage f3;
+    ff_Pipe<myTask> pipe(f1,f2,f3);
+    if(pipe.run_and_wait_end() <0) error(" runnnig Pipe");
+    return(0);
+}
+        

@@ -1,0 +1,58 @@
+
+#include <iostream>
+
+using namespace std;
+
+struct Task{
+  int m;
+ #if 0
+  Task(int a):m(a){
+     cout << ":m(a) constructor"<<"\n";
+  }
+ #elif 1
+  Task(int a):m{a}{
+    cout << ":m{a} constructor"<<"\n";
+}
+ #else
+  Task(int a){
+  cout << "{int  m{a}} constructor"<<"\n";
+   int m{a};
+}
+#endif
+ 
+  Task(const Task& o) : m(o.m){
+  cout << "you are copying me"<<endl;
+  }
+
+  Task( Task&& o) : m(o.m){
+  cout << "you are moving me"<<endl;
+  //delete &o; MEMORY LEAK 
+}
+
+  Task &operator=(const Task& o){
+  cout << "you are assigning me"<<endl;
+  // return Task(o.m);
+  return *this;
+}
+};
+
+int main(int argc, char *[]){
+    
+    Task a = Task(1.5);
+    Task b = 2.5; //solo quando prende un solo argomento
+    Task c(3.5);
+    Task *d = new Task(3.5);
+
+  Task g = Task(a);   // copy constructo
+  Task e = move(a);   // movy constructor -> memory leak
+  Task f = c;         //
+
+    std::cout << " a: " << a.m << "\n";
+    std::cout << " b: " << b.m << "\n";
+    std::cout << " c: " << c.m << "\n";
+    std::cout << " d: " << d->m << "\n";
+    std::cout << " d: " << (*d).m << "\n"; // d->m
+    std::cout << " e: " << e.m << "\n";
+  
+  
+  }

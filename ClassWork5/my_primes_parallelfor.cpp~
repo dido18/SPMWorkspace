@@ -1,0 +1,91 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+#include <sys/time.h>
+
+
+
+
+
+
+#include <ff/parallel_for.hpp>
+
+using namespace ff;
+using ull = unsigned long long;
+
+// see http://en.wikipedia.org/wiki/Primality_test
+static bool is_prime(ull n) {
+    if (n <= 3)  return n > 1; // 1 is not prime !
+    
+    if (n % 2 == 0 || n % 3 == 0) return false;
+
+    for (ull i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) 
+            return false;
+    }
+    return true;
+}
+
+int main(int argc, char *argv[]) {    
+    if (argc<4) {
+        std::cerr << "use: " << argv[0]  << " start end nWorkers [print=off|on]\n";
+        return -1;
+    }
+    ull n1          = std::stoll(argv[1]);
+    ull n2          = std::stoll(argv[2]);  
+    ull tot_number = n2-n1;
+    size_t nWorkers    = std::stoll(argv[3]);
+    bool print_primes = false;
+
+    if (argc >= 4)  {
+      print_primes = (std::string(argv[4]) == "on");
+    }
+
+    ParallelFor pf;
+    std::vector<ull> A(tot_number);
+
+    // vector of vectors, every worker write in different vector the prime number found
+    std::vector<std::vector<ull>> results(nWorkers);
+
+    // Initialize A
+    pf.parallel_for(0,tot_number,1,[&A,n1](const long i){
+	A[i] = n1+i;
+      });
+
+
+    // time before and after to calculate the times spent foe findeing primes
+    struct timeval t0,t1;
+    gettimeofday(&t0,NULL);   
+
+    //parallel_for computes Primes number
+    pf.parallel_for_idx(0,tot_number,1,0,[&A,&results,](const long begin, const long end, const int thid){
+	// std::cout << "Hello I'm worker " << thid << " work on [" << begin <<"," << end<<") "<< std::endl;
+        for( long i=begin; i< end; ++i)
+           if(is_prime(A[i])){
+	     (results.at(thid)).push_back(A[i]);
+            }
+     },nWorkers);
+
+    gettimeofday(&t1,NULL);
+ 
+
+    
+   // print the results if on
+    if (print_primes) {
+      int count_primes = 0;
+      for( size_t i = 0; i< nWorkers; ++i){
+	for( size_t j = 0; j < results[i].size(); ++j){
+	  std::cout << (results.at(i)).at(j)<<", " ;
+	  count_primes += 1;
+	}
+      }
+      std::cout << "\n\n Found "<< count_primes << " primes in ["<< n1 << ", "<< n2 <<" ) "<< std::endl;
+    
+    }
+    double elapsed = (t1.tv_sec-t0.tv_sec) + ((t1.tv_usec-t0.tv_usec)/1000000.0);
+    printf("%.6lf seconds elapsed\n", elapsed); 
+    return 0;
+}
+
+
