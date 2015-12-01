@@ -36,7 +36,7 @@ CXXFLAGS  	=
 LDFLAGS 	= -pthread
 OPTFLAGS	= -O3 -finline-functions -DNDEBUG
 
-TARGETS		= my_matrixvector_product
+TARGETS		= my_matrixvector_product my_reduce_sum.cpp
 
 .PHONY: all clean cleanall
 .SUFFIXES: .cpp 

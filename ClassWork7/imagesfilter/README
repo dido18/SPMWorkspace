@@ -1,0 +1,15 @@
+- Please start reading the files in this directory following the order
+  as described below:
+  first of all img.cpp that is the starting sequential code, then img_pipe.cpp,
+  which introduces the pipeline parallelism (as well as in img_pipe2.cpp where 
+  the software accelerator method is used instead), then move to 
+  img_pipe+farm.cpp and to the img_farm+pipe.cpp which are two possible 
+  useful transformations. 
+  Finally move to the img_farm.cpp which is the so called normal-form.
+  There is also the img_d.cpp version which propose a passible distributed 
+  implementation of the the img_farm.cpp.
+
+- ImageMagick internally uses OpenMP, please set OMP_NUM_THREADS=1 using 
+  export or setenv depending on the shell used.
+
+For any questions or possible issues please send an email to <torquati@di.unipi.it>.
