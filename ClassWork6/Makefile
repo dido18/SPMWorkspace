@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 #  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 2 as 
+#  it under the terms of the GNU General Public License version 2 as
 #  published by the Free Software Foundation.
 #
 #  This program is distributed in the hope that it will be useful,
@@ -23,33 +23,30 @@
 #
 # ---------------------------------------------------------------------------
 
-# 
+#
 # FF_ROOT     pointing to the FastFlow root directory (i.e.
 #             the one containing the ff directory).
 FF_ROOT		= /home/dido-ubuntu/fastflow/
 
 CXX		= g++ -std=c++11 -DNO_DEFAULT_MAPPING
-INCLUDES	= -I $(FF_ROOT) 
-CXXFLAGS  	= 
+INCLUDES	= -I $(FF_ROOT)
+CXXFLAGS  	=
 
 
 LDFLAGS 	= -pthread
-OPTFLAGS	= -O3 -finline-functions -DNDEBUG
+OPTFLAGS	= -O3 -finline-functions
 
-TARGETS		= my_matrixvector_product my_reduce_sum.cpp
+TARGETS		= my_maponstream my2_maponstream maponstream  my_arraysum
 
 .PHONY: all clean cleanall
-.SUFFIXES: .cpp 
+.SUFFIXES: .cpp .hpp
 
 
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS)
 
 all		: $(TARGETS)
-clean		: 
+clean		:
 	rm -f $(TARGETS)
 cleanall	: clean
 	\rm -f *.o *~
-
-
-
