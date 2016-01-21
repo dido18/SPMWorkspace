@@ -10,8 +10,7 @@
 typedef unsigned long long ull;
 
 /* my2_matrixvector_product.cpp
-  this versio doesn't use the temp vecot array.
-   inside the parallel_reduce operation olso the computatin of the multiplication T = A * S
+  put inside the parallel_reduce operation olso the computatin of the multiplication T = A * S
 
 Possible extension of  Classwork6
 1) extra channel
@@ -104,22 +103,28 @@ struct mapWorker:ff_Map<myTask,void, ull>
 
   void  svc_end(){
 
-    map::parallel_reduce(res,0,0,vstate.size(),
-			 [&](const long idx, ull &myres){
-			   myres += vstate.at(idx); 
-			 },
-			 [](ull &result, const int elem){ result += elem ;});
+    auto bodyR = [&](const long i,  ull &r){
+	   r += vstate.at(i);
+    };
+
+    auto reduceR = [](ull &res, const int elem){ res += elem;};
+
+    ull res = 0;
+    size_t size_state = vstate.size();
+
+    //(res = sum T[i]) reduce phase on temp vector T
+    map::parallel_reduce(res,0,0,size_state,bodyR,reduceR,nWorkers); //var, identity, first, last, bodyF, reduceF,nworkers
+    std::cout << "Final result " << res << endl;
+
   }
-   
-    std::vector<int>  vstate; //internal state vector
+    std::vector<int> vstate; //internal state vector
     int nWorkers;
-    ull res = {0};
 };
 
 
 int main(int argc, char *argv[]) {
     if (argc<5) {
-      std::cout << "use: " << argv[0]  << " nrows ncols nmatrixes nWorkers\n";
+      std::cout << "use: " << argv[0]  << " nrows ncols nmatrixes nWorkers [print=off|on]\n";
         return -1;
     }
     int  n_rows      = std::stoll(argv[1]);
@@ -127,19 +132,17 @@ int main(int argc, char *argv[]) {
     int  n_mats       = std::stoll(argv[3]);
     int  n_workers   = std::stoll(argv[4]);
 
+
+    if (argc >= 5)  {
+      print_primes = (std::string(argv[5]) == "on");
+    }
+
     Firststage emitMatrix(n_mats, n_rows, n_cols);
     mapWorker  mapW(n_workers);
-    
 
     ff_Pipe<myTask> pipe(emitMatrix, mapW);
 
-    ffTime(START_TIME);
     if(pipe.run_and_wait_end() <0) error("Runnning pipe");
-    ffTime(STOP_TIME);
-
-    std::cout << "Result: " <<   mapW.res << std::endl;
-    std::cout << "Time: " <<   ffTime(GET_TIME) <<" (ms)" << std::endl;
-    
     return (0);
 
 }
